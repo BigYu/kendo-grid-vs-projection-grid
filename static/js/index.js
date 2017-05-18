@@ -1,41 +1,72 @@
 import $ from 'jquery';
 import pgrid from 'projection-grid';
-import data from './data';
+import generateData from './data';
 import '../styles/index.scss';
 
-const columns = [
-  {
-    name: 'name',
-    title: 'name',
-    property: 'name',
-  },
-  {
-    name: 'test2',
-    title: 'test2',
-    property: 'test2',
-  },
-];
+$('#projection-message').text('generating 200 data');
 
-const dataSource = {
-  type: 'memory',
-  data,
-  primaryKey: 'Id',
-};
+generateData(200, (data) => {
+  let start, end;
 
-const config = {
-  el: $('.grid-container'),
-  tableClasses: ['table', 'table-hover', 'grid'],
-  scrolling: {
-    virtualized: true,
-    header: {
-      type: 'sticky',
+  const columns = [
+    {
+      name: 'Id',
+      title: 'ID',
+      property: 'Id',
     },
-  },
-  columns,
-  dataSource,
-};
+    {
+      name: 'FirstName',
+      title: 'First Name',
+      property: 'firstName',
+    },
+    {
+      name: 'LastName',
+      title: 'Last Name',
+      property: 'lastName',
+    },
+    {
+      name: 'City',
+      title: 'City',
+      property: 'city',
+    },
+    {
+      name: 'Title',
+      title: 'Title',
+      property: 'title',
+    }
+  ];
 
-const grid = pgrid.factory({vnext: true})
-  .create(config);
+  const dataSource = {
+    type: 'memory',
+    data,
+    primaryKey: 'Id',
+  };
 
-grid.gridView.render();
+  const config = {
+    el: $('.grid-container'),
+    tableClasses: ['table', 'table-hover', 'grid'],
+    scrolling: {
+      virtualized: false,
+      header: {
+        type: 'sticky',
+      },
+    },
+    columns,
+    dataSource,
+  };
+
+  const grid = pgrid.factory({vnext: true})
+    .create(config);
+
+  setTimeout(() => {
+    start = new Date();
+
+    grid.gridView.render(() => {
+      end = new Date();
+
+      $('#projection-message').text(end - start);
+    });
+  });
+});
+
+

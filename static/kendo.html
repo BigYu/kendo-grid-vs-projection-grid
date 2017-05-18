@@ -10,6 +10,7 @@
 
     <script src="https://kendo.cdn.telerik.com/2017.2.504/js/jquery.min.js"></script>
     <script src="https://kendo.cdn.telerik.com/2017.2.504/js/kendo.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
 </head>
 <body>
 <script src="../content/shared/js/people.js"></script>
@@ -18,7 +19,9 @@
     <div id="message" class="box wide"></div>
 
     <div id="grid"></div>
-
+    <script id="last-name-template" class="last-name" type="text/x-kendo-template">
+      <strong data-bind="event: { mouseover: onMouseOver, mouseout: onMouseOut }">#: LastName #</strong>
+    </script>
     <script>
         $(function() {
             var count = 500000;
@@ -33,7 +36,7 @@
 
             $("#message").text(kendo.format("Generating {0} items", count));
 
-            generatePeople(count, function(data) {
+            generatePeople(2000000, function(data) {
                 var initStart;
                 var renderStart;
 
@@ -42,12 +45,12 @@
                 setTimeout(function() {
                     initStart = new Date();
 
-                    $("#grid").kendoGrid({
+                    $(document.body).kendoGrid({
                         dataSource: {
                             data: data,
                             pageSize: 20
                         },
-                        height: 543,
+                        // height: 543,
                         scrollable: {
                             virtual: true
                         },
@@ -60,16 +63,68 @@
                         },
                         columns: [
                             { field: "Id", title: "ID", width: "110px" },
-                            { field: "FirstName", title: "First Name", width: "130px" },
-                            { field: "LastName", title: "Last Name", width: "130px" },
-                            { field: "City", title: "City", width: "130px" },
+                            {
+                                field: "FirstName",
+                                title: "First Name",
+                                width: "130px",
+                                template: function(dataItem) {
+                                    if (dataItem.FirstName == '') {
+                                        return '-';
+                                    } else if (dataItem.FirstName == '*') {
+                                        return '* detected';
+                                    }
+
+                                    return '<strong>' + kendo.htmlEncode(dataItem.FirstName) + '</strong>';
+                                },
+                            },
+                            {
+                                field: "LastName",
+                                title: "Last Name",
+                                width: "130px",
+                                template: kendo.template($('#last-name-template').html()),
+                            },
+                            {
+                                field: "City",
+                                title: "City",
+                                width: "130px",
+                                command: [
+                                    {
+                                        name: 'showCityDetail',
+                                        click: function(e) {
+                                            e.preventDefault();
+                                            var tr = $(e.target).closest("tr"); // get the current table row (tr)
+                                            // get the data bound to the current table row
+                                            var data = this.dataItem(tr);
+                                            alert(JSON.stringify(data));
+                                        }
+                                    }
+                                ]
+                            },
                             { field: "Title" }
                         ]
                     });
 
+
                     initEnd = new Date();
 
                     $("#message").text(kendo.format("Kendo UI Grid bound to {0} items in {1} milliseconds", count, initEnd - initStart));
+
+                    var viewModel = {
+                        onMouseOut: function() {
+                            console.log('mouse out');
+                        },
+                        onMouseOver: function() {
+                            console.log('mouse over');
+                        }
+                    }
+
+                    $('.k-virtual-scrollable-wrap').scroll(function() {
+                        console.log('scrolling');
+                        ko.cleanNode(document.getElementsByClassTag('k-virtual-scrollable-wrap'));
+                        ko.applyBindings(viewModel);
+                    });
+
+                    ko.applyBindings(viewModel);
                 });
             });
         });

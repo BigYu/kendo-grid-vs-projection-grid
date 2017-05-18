@@ -1,3 +1,5 @@
+var webpack = require('webpack');
+
 module.exports = {
   entry: './js/index.js',
   output: {
@@ -30,4 +32,12 @@ module.exports = {
     ]
   },
   devtool: "source-map",
+  plugins: [
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: false,
+        drop_console: false,
+      }
+    }),
+  ]
 }
